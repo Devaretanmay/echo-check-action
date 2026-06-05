@@ -23,7 +23,7 @@ jobs:
           ECHO_CHECK_OS: linux
           ECHO_CHECK_ARCH: x86_64
         run: |
-          bash $GITHUB_ACTION_PATH/entrypoint.sh download
+          bash "${GITHUB_WORKSPACE}/entrypoint.sh" download
           ls -la "${RUNNER_TEMP}/echo-check-bin/echo-check"
           "${RUNNER_TEMP}/echo-check-bin/echo-check" --version || true
           "${RUNNER_TEMP}/echo-check-bin/echo-check" --help
