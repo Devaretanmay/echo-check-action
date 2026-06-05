@@ -18,7 +18,6 @@ case "${OS_NAME}-${ARCH_NAME}" in
 esac
 
 EXT="tar.gz"
-[[ "${OS_NAME}" == "windows" ]] && EXT="zip"
 
 RELEASE_TAG="${VERSION}"
 if [[ "${VERSION}" == "latest" ]]; then
@@ -38,11 +37,7 @@ cmd_download() {
   echo "Downloading ${URL}"
   TMP="$(mktemp -d)"
   curl -fsSL -o "${TMP}/asset.${EXT}" "${URL}"
-  if [[ "${EXT}" == "tar.gz" ]]; then
-    tar -xzf "${TMP}/asset.${EXT}" -C "${TMP}"
-  else
-    unzip -o "${TMP}/asset.${EXT}" -d "${TMP}"
-  fi
+  tar -xzf "${TMP}/asset.${EXT}" -C "${TMP}"
   if [[ -f "${TMP}/echo-check" ]]; then
     mv "${TMP}/echo-check" "${BIN_PATH}"
   elif [[ -f "${TMP}/echo-check.exe" ]]; then
