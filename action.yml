@@ -1,0 +1,98 @@
+name: 'echo-check'
+description: 'Scan PR diffs for missing tests and risky assumptions. Posts findings as PR comment.'
+author: 'Tanmay Devare'
+
+branding:
+  icon: 'check-circle'
+  color: 'blue'
+
+inputs:
+  pr_number:
+    description: 'PR number to scan. Defaults to the PR that triggered the workflow.'
+    required: false
+  base_ref:
+    description: 'Base ref to diff against. Defaults to the PR base.'
+    required: false
+  head_ref:
+    description: 'Head ref to diff against. Defaults to the PR head (HEAD).'
+    required: false
+  fail_on_findings:
+    description: 'Exit with non-zero status if findings exist.'
+    required: false
+    default: 'true'
+  max_findings:
+    description: 'Max findings per category (MT/RA).'
+    required: false
+    default: '20'
+  echo_check_version:
+    description: 'echo-check release tag to download (e.g. v0.1.0-beta.1). Defaults to latest.'
+    required: false
+    default: 'latest'
+  github_token:
+    description: 'GitHub token for posting PR comments.'
+    required: true
+  comment_on_pr:
+    description: 'Post findings as a PR comment.'
+    required: false
+    default: 'true'
+
+outputs:
+  findings_count:
+    description: 'Total number of findings (MT + RA).'
+  report_path:
+    description: 'Path to the saved markdown report.'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Detect platform
+      id: platform
+      shell: bash
+      run: |
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          echo "os=linux" >> "$GITHUB_OUTPUT"
+          echo "arch=x86_64" >> "$GITHUB_OUTPUT"
+        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          echo "os=darwin" >> "$GITHUB_OUTPUT"
+          if [[ "${{ runner.arch }}" == "ARM64" ]]; then
+            echo "arch=aarch64" >> "$GITHUB_OUTPUT"
+          else
+            echo "arch=x86_64" >> "$GITHUB_OUTPUT"
+          fi
+        elif [[ "${{ runner.os }}" == "Windows" ]]; then
+          echo "os=windows" >> "$GITHUB_OUTPUT"
+          echo "arch=x86_64" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Download echo-check binary
+      id: download
+      shell: bash
+      run: "$GITHUB_ACTION_PATH/entrypoint.sh download"
+      env:
+        ECHO_CHECK_VERSION: ${{ inputs.echo_check_version }}
+        ECHO_CHECK_OS: ${{ steps.platform.outputs.os }}
+        ECHO_CHECK_ARCH: ${{ steps.platform.outputs.arch }}
+
+    - name: Run echo-check
+      id: run
+      shell: bash
+      run: "$GITHUB_ACTION_PATH/entrypoint.sh run"
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+        BASE_REF: ${{ inputs.base_ref }}
+        HEAD_REF: ${{ inputs.head_ref }}
+        MAX_FINDINGS: ${{ inputs.max_findings }}
+        FAIL_ON_FINDINGS: ${{ inputs.fail_on_findings }}
+        COMMENT_ON_PR: ${{ inputs.comment_on_pr }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_EVENT_PATH: ${{ github.event_path }}
+        GITHUB_OUTPUT: ${{ github.output }}
+
+    - name: Upload report artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: echo-check-report
+        path: ${{ steps.run.outputs.report_path }}
+        if-no-files-found: ignore
