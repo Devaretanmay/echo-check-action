@@ -25,9 +25,9 @@ inputs:
     required: false
     default: '20'
   echo_check_version:
-    description: 'echo-check release tag to download (e.g. v0.1.0-beta.1). Defaults to latest.'
+    description: 'echo-check release tag to download (e.g. v0.1.0-beta.2). Defaults to latest.'
     required: false
-    default: 'latest'
+    default: 'v0.1.0-beta.2'
   github_token:
     description: 'GitHub token for posting PR comments.'
     required: true

@@ -31,6 +31,15 @@ jobs:
       - uses: Devaretanmay/echo-check-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          echo_check_version: v0.1.0-beta.2
+          fail_on_findings: false
+          comment_on_pr: false
+          max_findings: 20
+
+# Or pin a specific version:
+      - uses: Devaretanmay/echo-check-action@v1.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_findings: true
           max_findings: 20
 ```
