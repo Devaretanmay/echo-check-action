@@ -1,0 +1,55 @@
+name: integration
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create test diff
+        run: |
+          mkdir -p /tmp/test-repo
+          cat > /tmp/test-repo/sample.diff <<'EOF'
+          --- a/src/auth.py
+          +++ b/src/auth.py
+          @@ -0,0 +1,15 @@
+          +import requests
+          +
+          +def login(user, password):
+          +    response = requests.get(f"https://api.example.com/login?u={user}&p={password}")
+          +    return response.json()["token"]
+          +
+          +def get_profile(user_id):
+          +    profile = requests.get(f"https://api.example.com/users/{user_id}")
+          +    return profile.json()["name"]
+          EOF
+          echo "Test diff created"
+
+      - name: Run echo-check directly
+        run: |
+          cargo build --release --manifest-path /Users/tanmaydevare/Tanmay/Echo/Cargo.toml
+          /Users/tanmaydevare/Tanmay/Echo/target/release/echo-check /tmp/test-repo/sample.diff --format markdown
+
+      - name: Run action in test mode
+        env:
+          ECHO_CHECK_VERSION: v0.1.0-beta.1
+          ECHO_CHECK_OS: linux
+          ECHO_CHECK_ARCH: x86_64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: 1
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          MAX_FINDINGS: 20
+          FAIL_ON_FINDINGS: false
+          COMMENT_ON_PR: false
+        run: |
+          bash /Users/tanmaydevare/Tanmay/echo-check-action/entrypoint.sh download
+          bash /Users/tanmaydevare/Tanmay/echo-check-action/entrypoint.sh run
