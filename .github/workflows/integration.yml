@@ -3,21 +3,42 @@ name: integration
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  test-action:
+  test-binary-download:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create test diff
+      - name: Test download
+        env:
+          ECHO_CHECK_VERSION: v0.1.0-beta.2
+          ECHO_CHECK_OS: linux
+          ECHO_CHECK_ARCH: x86_64
         run: |
-          mkdir -p /tmp/test-repo
-          cat > /tmp/test-repo/sample.diff <<'EOF'
+          bash $GITHUB_ACTION_PATH/entrypoint.sh download
+          ls -la "${RUNNER_TEMP}/echo-check-bin/echo-check"
+          "${RUNNER_TEMP}/echo-check-bin/echo-check" --version || true
+          "${RUNNER_TEMP}/echo-check-bin/echo-check" --help
+
+      - name: Run on test diff
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: 1
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          MAX_FINDINGS: 5
+          FAIL_ON_FINDINGS: false
+          COMMENT_ON_PR: false
+        run: |
+          cat > /tmp/test.diff <<'EOF'
           --- a/src/auth.py
           +++ b/src/auth.py
           @@ -0,0 +1,15 @@
@@ -31,25 +52,17 @@ jobs:
           +    profile = requests.get(f"https://api.example.com/users/{user_id}")
           +    return profile.json()["name"]
           EOF
-          echo "Test diff created"
+          export ECHO_CHECK_BIN="${RUNNER_TEMP}/echo-check-bin/echo-check"
+          "${ECHO_CHECK_BIN}" /tmp/test.diff --format markdown --max-findings 5 --no-fail
 
-      - name: Run echo-check directly
-        run: |
-          cargo build --release --manifest-path /Users/tanmaydevare/Tanmay/Echo/Cargo.toml
-          /Users/tanmaydevare/Tanmay/Echo/target/release/echo-check /tmp/test-repo/sample.diff --format markdown
-
-      - name: Run action in test mode
-        env:
-          ECHO_CHECK_VERSION: v0.1.0-beta.1
-          ECHO_CHECK_OS: linux
-          ECHO_CHECK_ARCH: x86_64
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: 1
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_EVENT_PATH: ${{ github.event_path }}
-          MAX_FINDINGS: 20
-          FAIL_ON_FINDINGS: false
-          COMMENT_ON_PR: false
-        run: |
-          bash /Users/tanmaydevare/Tanmay/echo-check-action/entrypoint.sh download
-          bash /Users/tanmaydevare/Tanmay/echo-check-action/entrypoint.sh run
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Devaretanmay/echo-check-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_findings: false
+          comment_on_pr: false
+          max_findings: 5
+          echo_check_version: v0.1.0-beta.2
