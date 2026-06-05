@@ -6,7 +6,7 @@ Scan a pull request diff for [missing tests](../echo-check) and [risky assumptio
 
 For each pull request, echo-check:
 
-1. Downloads the prebuilt `echo-check` binary from the [`Tanmayitraceu/echo-check`](https://github.com/Tanmayitraceu/echo-check) releases.
+1. Downloads the prebuilt `echo-check` binary from the [`Devaretanmay/echo-check`](https://github.com/Devaretanmay/echo-check) releases.
 2. Fetches the PR diff via the GitHub API.
 3. Runs the binary in JSON mode to count findings, then markdown mode to render a report.
 4. Posts the markdown report as a PR comment (if `comment_on_pr: true`).
@@ -28,7 +28,7 @@ jobs:
   echo-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: Tanmayitraceu/echo-check-action@v1
+      - uses: Devaretanmay/echo-check-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_findings: true

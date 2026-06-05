@@ -22,7 +22,7 @@ EXT="tar.gz"
 
 RELEASE_TAG="${VERSION}"
 if [[ "${VERSION}" == "latest" ]]; then
-  RELEASE_TAG=$(curl -fsSL "https://api.github.com/repos/Tanmayitraceu/echo-check/releases/latest" | \
+  RELEASE_TAG=$(curl -fsSL "https://api.github.com/repos/Devaretanmay/echo-check/releases/latest" | \
     grep -E '"tag_name"' | head -1 | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')
   if [[ -z "${RELEASE_TAG}" ]]; then
     echo "::error::Could not determine latest release tag" >&2
@@ -31,7 +31,7 @@ if [[ "${VERSION}" == "latest" ]]; then
 fi
 
 ASSET_NAME="echo-check-${TARGET}.${EXT}"
-URL="https://github.com/Tanmayitraceu/echo-check/releases/download/${RELEASE_TAG}/${ASSET_NAME}"
+URL="https://github.com/Devaretanmay/echo-check/releases/download/${RELEASE_TAG}/${ASSET_NAME}"
 
 cmd_download() {
   mkdir -p "${BIN_DIR}"
