@@ -86,7 +86,7 @@ cmd_run() {
   DIFF_URL="https://patch-diff.githubusercontent.com/raw/${REPO}/pull/${PR_NUMBER}.diff"
   echo "Fetching diff: ${DIFF_URL}"
   DIFF_FILE="${REPORT_DIR}/pr.diff"
-  if ! curl -fsSL -H "Authorization: token ${GITHUB_TOKEN}" -o "${DIFF_FILE}" "${DIFF_URL}"; then
+  if ! curl -fsSL -o "${DIFF_FILE}" "${DIFF_URL}"; then
     echo "::error::Failed to fetch PR diff from ${DIFF_URL}" >&2
     exit 1
   fi
