@@ -83,10 +83,18 @@ cmd_run() {
     exit 1
   fi
 
-  DIFF_URL="https://patch-diff.githubusercontent.com/raw/${REPO}/pull/${PR_NUMBER}.diff"
-  echo "Fetching diff: ${DIFF_URL}"
+  DIFF_URL="https://api.github.com/repos/${REPO}/pulls/${PR_NUMBER}"
+  echo "Fetching PR metadata: ${DIFF_URL}"
+  PR_META="${REPORT_DIR}/pr.json"
+  if ! curl -fsSL -H "Accept: application/vnd.github+json" -o "${PR_META}" "${DIFF_URL}"; then
+    echo "::error::Failed to fetch PR metadata from ${DIFF_URL}" >&2
+    exit 1
+  fi
+
+  DIFF_URL="https://api.github.com/repos/${REPO}/pulls/${PR_NUMBER}"
+  echo "Fetching PR diff: ${DIFF_URL}"
   DIFF_FILE="${REPORT_DIR}/pr.diff"
-  if ! curl -fsSL -o "${DIFF_FILE}" "${DIFF_URL}"; then
+  if ! curl -fsSL -H "Accept: application/vnd.github.v3.diff" -o "${DIFF_FILE}" "${DIFF_URL}"; then
     echo "::error::Failed to fetch PR diff from ${DIFF_URL}" >&2
     exit 1
   fi
