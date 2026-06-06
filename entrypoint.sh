@@ -83,20 +83,21 @@ cmd_run() {
     exit 1
   fi
 
-  DIFF_URL="https://api.github.com/repos/${REPO}/pulls/${PR_NUMBER}"
-  echo "Fetching PR metadata: ${DIFF_URL}"
-  PR_META="${REPORT_DIR}/pr.json"
-  if ! curl -fsSL -H "Accept: application/vnd.github+json" -o "${PR_META}" "${DIFF_URL}"; then
-    echo "::error::Failed to fetch PR metadata from ${DIFF_URL}" >&2
-    exit 1
-  fi
-
-  DIFF_URL="https://api.github.com/repos/${REPO}/pulls/${PR_NUMBER}"
-  echo "Fetching PR diff: ${DIFF_URL}"
   DIFF_FILE="${REPORT_DIR}/pr.diff"
-  if ! curl -fsSL -H "Accept: application/vnd.github.v3.diff" -o "${DIFF_FILE}" "${DIFF_URL}"; then
-    echo "::error::Failed to fetch PR diff from ${DIFF_URL}" >&2
-    exit 1
+  if [[ -n "${BASE_REF:-}" && -n "${HEAD_REF:-}" ]]; then
+    echo "Using BASE_REF=${BASE_REF} HEAD_REF=${HEAD_REF}"
+    if ! git -C "${GITHUB_WORKSPACE:-.}" diff --binary "${BASE_REF}...${HEAD_REF}" > "${DIFF_FILE}" 2>"${REPORT_DIR}/git-diff.err"; then
+      echo "::error::git diff failed:" >&2
+      cat "${REPORT_DIR}/git-diff.err" >&2 || true
+      exit 1
+    fi
+  else
+    DIFF_URL="https://github.com/${REPO}/pull/${PR_NUMBER}.diff"
+    echo "Fetching diff: ${DIFF_URL}"
+    if ! curl -fsSL -o "${DIFF_FILE}" "${DIFF_URL}"; then
+      echo "::error::Failed to fetch PR diff from ${DIFF_URL}" >&2
+      exit 1
+    fi
   fi
 
   echo "Running echo-check on PR #${PR_NUMBER}"
