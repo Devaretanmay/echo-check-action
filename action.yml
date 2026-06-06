@@ -79,6 +79,9 @@ runs:
       shell: bash
       run: "$GITHUB_ACTION_PATH/entrypoint.sh run"
       env:
+        ECHO_CHECK_VERSION: ${{ inputs.echo_check_version }}
+        ECHO_CHECK_OS: ${{ steps.platform.outputs.os }}
+        ECHO_CHECK_ARCH: ${{ steps.platform.outputs.arch }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
         PR_NUMBER: ${{ inputs.pr_number }}
         BASE_REF: ${{ inputs.base_ref }}

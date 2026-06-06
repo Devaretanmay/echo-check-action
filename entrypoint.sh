@@ -103,7 +103,7 @@ cmd_run() {
   echo "Running echo-check on PR #${PR_NUMBER}"
   EXIT_CODE=0
   "${BIN_PATH}" \
-    --diff "${DIFF_FILE}" \
+    "${DIFF_FILE}" \
     --format json \
     --max-findings "${MAX_FINDINGS:-20}" \
     --output "${RAW_JSON}" \
@@ -117,7 +117,7 @@ cmd_run() {
   fi
 
   "${BIN_PATH}" \
-    --diff "${DIFF_FILE}" \
+    "${DIFF_FILE}" \
     --format markdown \
     --max-findings "${MAX_FINDINGS:-20}" \
     --output "${REPORT_PATH}" \
