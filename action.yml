@@ -10,6 +10,7 @@ inputs:
   pr_number:
     description: 'PR number to scan. Defaults to the PR that triggered the workflow.'
     required: false
+    default: ${{ github.event.pull_request.number }}
   base_ref:
     description: 'Base ref to diff against. Defaults to the PR base.'
     required: false
